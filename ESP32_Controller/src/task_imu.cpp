@@ -3,6 +3,7 @@
 #include <driver/twai.h>
 
 #include "dm_imu.hpp"
+#include "protocol_wifi.hpp"
 #include "wifi_param.hpp"
 #include "wifi_udp_connect.hpp"
 
@@ -14,7 +15,7 @@ namespace task_imu
 {
 
 dm_imu::imu_t imu;
-imu_trans_u imu_trans_data;
+protocol_wifi::imu_u imu_trans_data;
 
 static void Setup()
 {
@@ -54,6 +55,7 @@ static void Receive()
 
 static void UdpTransmit()
 {
+    imu_trans_data.decoded.type = PROTOCOL_WIFI_TYPE_IMU;
     imu_trans_data.decoded.can_id = imu.can_id;
     imu_trans_data.decoded.mst_id = imu.mst_id;
     imu_trans_data.decoded.ax = imu.accel[0];
