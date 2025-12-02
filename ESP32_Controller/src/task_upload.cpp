@@ -28,9 +28,16 @@ static void Loop()
 {
     if (WiFi.status() != WL_CONNECTED) {
         // 简单重连逻辑
-        // TODO: 可以改成更复杂的状态机
+        Serial.println("WiFi disconnected, reconnecting...");
         WiFi.reconnect();
-        delay(500);
+        
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("Reconnected, IP: " + WiFi.localIP().toString());
+        } else {
+            Serial.println("Reconnection failed.");
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 
