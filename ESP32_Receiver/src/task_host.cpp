@@ -1,12 +1,16 @@
 #include "task_host.hpp"
 
-#include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
 #include "protocol_wifi.hpp"
 
-protocol_wifi::imu_u imu_data;
+#define MAX_INTERVAL_CONNECTION 100  // ms
+
+protocol_wifi::imu_u head_imu_data;
+protocol_wifi::imu_u pose_imu_data;
+
+bool wifi_connected = false;
 
 namespace task_host
 {
@@ -17,19 +21,55 @@ const uint16_t listenPort = 3333;
 
 WiFiUDP Udp;
 
+connect_t head_tracker = {.connected = false, .last_update_ms = 0};
+connect_t pose_tracker = {.connected = false, .last_update_ms = 0};
+
 static void DecodeWifiData(char * buf, int len)
 {
     switch (buf[0]) {
         case PROTOCOL_WIFI_TYPE_IMU: {
-            if (len > sizeof(imu_data.raw.data)) {
-                len = sizeof(imu_data.raw.data);
+            protocol_wifi::imu_u imu_tmp;
+            if (len > sizeof(imu_tmp.raw.data)) {
+                len = sizeof(imu_tmp.raw.data);
             }
-            memcpy(&imu_data.raw.data[0], buf, len);
+            memcpy(&imu_tmp.raw.data[0], buf, len);
+
+            if (imu_tmp.decoded.can_id = 0x01) {
+                head_imu_data = imu_tmp;
+                head_tracker.last_update_ms = millis();
+            } else if (imu_tmp.decoded.can_id == 0x02) {
+                pose_imu_data = imu_tmp;
+                pose_tracker.last_update_ms = millis();
+            }
+
         } break;
 
         default:
             break;
     }
+}
+
+bool ConnectionCheck()
+{
+    ulong current_ms = millis();
+
+    // head tracker
+    if (current_ms - head_tracker.last_update_ms < MAX_INTERVAL_CONNECTION &&
+        current_ms > MAX_INTERVAL_CONNECTION) {
+        head_tracker.connected = true;
+    } else {
+        head_tracker.connected = false;
+    }
+
+    // pose tracker
+    if (current_ms - pose_tracker.last_update_ms < MAX_INTERVAL_CONNECTION &&
+        current_ms > MAX_INTERVAL_CONNECTION) {
+        pose_tracker.connected = true;
+    } else {
+        pose_tracker.connected = false;
+    }
+
+    return head_tracker.connected || pose_tracker.connected;
 }
 
 void HostTask(void * pvParameters)
@@ -51,26 +91,17 @@ void HostTask(void * pvParameters)
             int len = Udp.read(buf, sizeof(buf) - 1);
             if (len > 0) {
                 buf[len] = 0;
-                // 处理收到的数据（尽量快速，避免阻塞）
-                Serial.printf("From %s:%u -> \n", remoteIp.toString().c_str(), remotePort);
-
-                // 逐字节打印16进制的接收到的数据
-                // Serial.print("Data (hex): ");
-                // for (int i = 0; i < len; i++) {
-                //     Serial.printf("%02X ", static_cast<uint8_t>(buf[i]));
-                // }
-                // Serial.println();
-
                 DecodeWifiData(buf, len);
-                Serial.printf(
-                    "IMU Data: ax=%.2f ay=%.2f az=%.2f dr=%.2f dp=%.2f dy=%.2f r=%.2f p=%.2f "
-                    "y=%.2f\n",
-                    imu_data.decoded.ax, imu_data.decoded.ay, imu_data.decoded.az,
-                    imu_data.decoded.dr, imu_data.decoded.dp, imu_data.decoded.dy,
-                    imu_data.decoded.r, imu_data.decoded.p, imu_data.decoded.y);
             }
         }
+        
+        bool last_connected = wifi_connected;
+        wifi_connected = ConnectionCheck();
 
+        if (wifi_connected != last_connected) {
+            Serial.printf("Connection status changed: %s\n", wifi_connected ? "Connected" : "Disconnected");
+        }
+        
         // yield to other tasks
         vTaskDelay(pdMS_TO_TICKS(5));
     }
