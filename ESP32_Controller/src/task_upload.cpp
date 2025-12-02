@@ -56,7 +56,7 @@ void UploadTask(void * pvParameters)
         Serial.println("Uploaded: " + String(payload));
 
         // yield to other tasks
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(7));
     }
 }
 }  // namespace task_upload

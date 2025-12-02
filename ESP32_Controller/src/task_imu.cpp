@@ -78,7 +78,7 @@ void ImuTask(void * pvParameters)
     Setup();
     while (true) {
         Loop();
-        vTaskDelay(pdMS_TO_TICKS(7));
+        vTaskDelay(pdMS_TO_TICKS(4));
     }
 }
 }  // namespace task_imu
