@@ -20,6 +20,9 @@ static void DecodeWifiData(char * buf, int len)
 {
     switch (buf[0]) {
         case PROTOCOL_WIFI_TYPE_IMU: {
+            if (len > sizeof(imu_data.raw.data)) {
+                len = sizeof(imu_data.raw.data);
+            }
             memcpy(&imu_data.raw.data[0], buf, len);
         } break;
 
