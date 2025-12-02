@@ -5,6 +5,7 @@
 #include <WiFiUdp.h>
 
 #include "wifi_param.hpp"
+#include "wifi_udp_connect.hpp"
 
 namespace task_upload
 {
@@ -46,11 +47,12 @@ void UploadTask(void * pvParameters)
         char payload[128];
         int len =
             snprintf(payload, sizeof(payload), "imu,x=%.2f,y=%.2f,z=%.2f\n", imu_x, imu_y, imu_z);
-        Udp.beginPacket(serverIp, serverPort);
-        Udp.write((uint8_t *)payload, len);
-        Udp.endPacket();
-        // 打印日志
-        Serial.println("Uploaded: " + String(payload));
+        // Udp.beginPacket(serverIp, serverPort);
+        // Udp.write((uint8_t *)payload, len);
+        // Udp.endPacket();
+
+        if (wifi_udp_connect::UdpUpload(serverIp, serverPort, (uint8_t *)payload, len))
+            Serial.println("Uploaded: " + String(payload));  // 打印日志
 
         // yield to other tasks
         vTaskDelay(pdMS_TO_TICKS(7));
