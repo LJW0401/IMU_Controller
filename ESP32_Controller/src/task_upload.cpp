@@ -12,12 +12,7 @@ namespace task_upload
 
 WiFiUDP Udp;
 
-// 模拟IMU数据（TODO：正式版要删掉）
-float imu_x = 0.0;
-float imu_y = 0.0;
-float imu_z = 0.0;
-
-void UploadTask(void * pvParameters)
+static void Setup()
 {
     // setup
     WiFi.begin(ssid, password);
@@ -27,35 +22,25 @@ void UploadTask(void * pvParameters)
         Serial.print(".");
     }
     Serial.println("\nConnected, IP: " + WiFi.localIP().toString());
+}
 
-    // task loop
+static void Loop()
+{
+    if (WiFi.status() != WL_CONNECTED) {
+        // 简单重连逻辑
+        // TODO: 可以改成更复杂的状态机
+        WiFi.reconnect();
+        delay(500);
+    }
+}
+
+void UploadTask(void * pvParameters)
+{
+    Setup();
     while (true) {
-        if (WiFi.status() != WL_CONNECTED) {
-            // 简单重连逻辑
-            // TODO: 可以改成更复杂的状态机
-            WiFi.reconnect();
-            delay(500);
-            return;
-        }
-
-        // 模拟IMU数据变化（TODO：正式版要删掉）
-        imu_x += 0.1;
-        imu_y += 0.2;
-        imu_z += 0.3;
-
-        // 构造简单数据包并发送
-        char payload[128];
-        int len =
-            snprintf(payload, sizeof(payload), "imu,x=%.2f,y=%.2f,z=%.2f\n", imu_x, imu_y, imu_z);
-        // Udp.beginPacket(serverIp, serverPort);
-        // Udp.write((uint8_t *)payload, len);
-        // Udp.endPacket();
-
-        if (wifi_udp_connect::UdpUpload(serverIp, serverPort, (uint8_t *)payload, len))
-            Serial.println("Uploaded: " + String(payload));  // 打印日志
-
+        Loop();
         // yield to other tasks
-        vTaskDelay(pdMS_TO_TICKS(7));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 }  // namespace task_upload

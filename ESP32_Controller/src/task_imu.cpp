@@ -1,9 +1,10 @@
 #include "task_imu.hpp"
 
-#include <Arduino.h>
 #include <driver/twai.h>
 
 #include "dm_imu.hpp"
+#include "wifi_param.hpp"
+#include "wifi_udp_connect.hpp"
 
 // CAN 配置（按需修改引脚和波特率）
 #define CAN_TX_PIN GPIO_NUM_5
@@ -13,6 +14,7 @@ namespace task_imu
 {
 
 dm_imu::imu_t imu;
+imu_trans_u imu_trans_data;
 
 static void Setup()
 {
@@ -45,20 +47,27 @@ static void Receive()
     // 接收（非阻塞，超时 10ms）
     twai_message_t rx_msg;
     if (twai_receive(&rx_msg, pdMS_TO_TICKS(10)) == ESP_OK) {
-        // 处理接收到的消息
-        // Serial.printf("CAN RX id=0x%03X len=%u data=", rx_msg.identifier, rx_msg.data_length_code);
-        // for (uint8_t i = 0; i < rx_msg.data_length_code; ++i)
-        //     Serial.printf("%02X ", rx_msg.data[i]);
-        // Serial.println();
-        
         // 根据 ID 解析数据
         IMU_UpdateData(imu, rx_msg.data);
-        // 打印 IMU 数据：xyz的加速度，rpy的角速度，rpy的角度
-        // Serial.printf("Accel [m/s^2] - X: %.3f, Y: %.3f, Z: %.3f\n", imu.accel[0], imu.accel[1], imu.accel[2]);
-        // Serial.printf("Gyro  [deg/s]  - Roll: %.3f, Pitch: %.3f, Yaw: %.3f\n", imu.gyro[0], imu.gyro[1], imu.gyro[2]);
-        Serial.printf("IMU Data - Pitch: %.2f, Roll: %.2f, Yaw: %.2f\n", imu.pitch, imu.roll, imu.yaw);
-        Serial.println();
     }
+}
+
+static void UdpTransmit()
+{
+    imu_trans_data.decoded.can_id = imu.can_id;
+    imu_trans_data.decoded.mst_id = imu.mst_id;
+    imu_trans_data.decoded.ax = imu.accel[0];
+    imu_trans_data.decoded.ay = imu.accel[1];
+    imu_trans_data.decoded.az = imu.accel[2];
+    imu_trans_data.decoded.dr = imu.gyro[0];
+    imu_trans_data.decoded.dp = imu.gyro[1];
+    imu_trans_data.decoded.dy = imu.gyro[2];
+    imu_trans_data.decoded.r = imu.roll;
+    imu_trans_data.decoded.p = imu.pitch;
+    imu_trans_data.decoded.y = imu.yaw;
+
+    wifi_udp_connect::UdpUpload(
+        serverIp, serverPort, imu_trans_data.raw.data, sizeof(imu_trans_data.decoded));
 }
 
 static void Loop()
@@ -71,6 +80,8 @@ static void Loop()
 
     imu_request_euler(imu);
     Receive();
+
+    UdpTransmit();
 }
 
 void ImuTask(void * pvParameters)
@@ -78,7 +89,7 @@ void ImuTask(void * pvParameters)
     Setup();
     while (true) {
         Loop();
-        vTaskDelay(pdMS_TO_TICKS(4));
+        vTaskDelay(pdMS_TO_TICKS(7));
     }
 }
 }  // namespace task_imu
