@@ -3,6 +3,9 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
+
+#include "protocol_wifi.hpp"
+
 namespace task_host
 {
 
@@ -11,6 +14,7 @@ const char * password = "12345678";
 const uint16_t listenPort = 3333;
 
 WiFiUDP Udp;
+protocol_wifi::imu_u imu_data;
 
 void HostTask(void * pvParameters)
 {
@@ -32,12 +36,18 @@ void HostTask(void * pvParameters)
             if (len > 0) {
                 buf[len] = 0;
                 // 处理收到的数据（尽量快速，避免阻塞）
-                Serial.printf("From %s:%u -> %s\n", remoteIp.toString().c_str(), remotePort, buf);
+                Serial.printf("From %s:%u -> \n", remoteIp.toString().c_str(), remotePort);
+                // 逐字节打印16进制的接收到的数据
+                Serial.print("Data (hex): ");
+                for (int i = 0; i < len; i++) {
+                    Serial.printf("%02X ", static_cast<uint8_t>(buf[i]));
+                }
+                Serial.println();
             }
         }
         
         // yield to other tasks
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 }  // namespace task_host
