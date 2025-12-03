@@ -4,7 +4,7 @@
 #include <WiFiUdp.h>
 
 #include "protocol_wifi.hpp"
-#include "shared.hpp"
+#include "sbus.hpp"
 
 #define MAX_INTERVAL_CONNECTION 100  // ms
 
@@ -20,6 +20,9 @@ WiFiUDP Udp;
 connect_t head_tracker = {.connected = false, .last_update_ms = 0};
 connect_t pose_tracker = {.connected = false, .last_update_ms = 0};
 bool wifi_connected = false;
+
+protocol_wifi::imu_u head_imu_data;
+protocol_wifi::imu_u pose_imu_data;
 
 static void DecodeWifiData(char * buf, int len)
 {
@@ -57,7 +60,6 @@ bool ConnectionCheck()
     } else {
         head_tracker.connected = false;
     }
-    head_tracker_connected = head_tracker.connected;
 
     // pose tracker
     if (current_ms - pose_tracker.last_update_ms < MAX_INTERVAL_CONNECTION &&
@@ -66,12 +68,15 @@ bool ConnectionCheck()
     } else {
         pose_tracker.connected = false;
     }
-    pose_tracker_connected = pose_tracker.connected;
 
     return head_tracker.connected || pose_tracker.connected;
 }
 
-static void Setup()
+//---------------------------------------------------------------------------
+// Setup
+//---------------------------------------------------------------------------
+
+static void WifiSetup()
 {
     WiFi.softAP(ssid, password);
     Serial.printf("AP started, IP=%s\n", WiFi.softAPIP().toString().c_str());
@@ -79,6 +84,16 @@ static void Setup()
     Udp.begin(listenPort);
     Serial.printf("UDP listening on port %u\n", listenPort);
 }
+
+static void Setup()
+{
+    WifiSetup();
+    sbus::SetupSbus(12, 13);
+}
+
+//---------------------------------------------------------------------------
+// Loop
+//---------------------------------------------------------------------------
 
 static void Loop()
 {
@@ -101,6 +116,25 @@ static void Loop()
         Serial.printf(
             "Connection status changed: %s\n", wifi_connected ? "Connected" : "Disconnected");
     }
+
+    // 测试数据
+    sbus::SBUS.unpack.ch0 = 0x00;
+    sbus::SBUS.unpack.ch1 = 0x01;
+    sbus::SBUS.unpack.ch2 = 0x02;
+    sbus::SBUS.unpack.ch3 = 0x03;
+    sbus::SBUS.unpack.ch4 = 0x04;
+    sbus::SBUS.unpack.ch5 = 0x05;
+    sbus::SBUS.unpack.ch6 = 0x06;
+    sbus::SBUS.unpack.ch7 = 0x07;
+    sbus::SBUS.unpack.ch8 = 0x08;
+    sbus::SBUS.unpack.ch9 = 0x09;
+    sbus::SBUS.unpack.ch10 = 0x0A;
+    sbus::SBUS.unpack.ch11 = 0x0B;
+    sbus::SBUS.unpack.ch12 = 0x0C;
+    sbus::SBUS.unpack.ch13 = 0x0D;
+    sbus::SBUS.unpack.ch14 = 0x0E;
+    sbus::SBUS.unpack.ch15 = 0x0F;
+    sbus::SbusSendData();
 }
 
 void HostTask(void * pvParameters)
