@@ -95,7 +95,7 @@ static bool ConnectionCheck()
     return head_tracker.connected || pose_tracker.connected;
 }
 
-static void Loop()
+static void SolveWifiConnection()
 {
     int packetSize = Udp.parsePacket();
     if (packetSize) {
@@ -116,8 +116,10 @@ static void Loop()
         Serial.printf(
             "Connection status changed: %s\n", wifi_connected ? "Connected" : "Disconnected");
     }
+}
 
-    // 测试数据
+static void SolveStateControl()
+{  // 测试数据
     sbus::SBUS.unpack.ch0 = 0x00;
     sbus::SBUS.unpack.ch1 = 0x01;
     sbus::SBUS.unpack.ch2 = 0x02;
@@ -134,6 +136,12 @@ static void Loop()
     sbus::SBUS.unpack.ch13 = 0x0D;
     sbus::SBUS.unpack.ch14 = 0x0E;
     sbus::SBUS.unpack.ch15 = 0x0F;
+}
+
+static void Loop()
+{
+    SolveWifiConnection();
+    SolveStateControl();
     sbus::SbusSendData();
 }
 
