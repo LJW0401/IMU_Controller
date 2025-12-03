@@ -1,1 +1,0 @@
-void StateControlTask(void * pvParameters);
