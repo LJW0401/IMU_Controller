@@ -139,7 +139,12 @@ static void SolveWifiConnection()
 
 static void SolveStateControl()
 {
-    sbus::SBUS.unpack.ch15 = 0x01;  // 标识该控制器为自定义头追控制器
+    if (head_tracker.connected || pose_tracker.connected) {
+        sbus::SBUS.unpack.connect_flag = 0x01;  // 标识该控制器为自定义头追控制器
+    } else {
+        sbus::SBUS.unpack.connect_flag = 0xFF;
+    }
+    
     // 头追IMU数据
     sbus::SBUS.unpack.ch0 = float_to_uint(head_imu_data.decoded.r, -180.0f, 180.0f, 11);
     sbus::SBUS.unpack.ch1 = float_to_uint(head_imu_data.decoded.p, -90.0f, 90.0f, 11);
