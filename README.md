@@ -1,6 +1,6 @@
 # IMU_Controller
 
-（整活系列）用IMU实现的一个简单的遥控器。
+（整活系列）用IMU实现的一个简单的体感控制器。
 
 ## 设备拓扑关系
 
@@ -9,10 +9,10 @@
 本控制器主要由3部分构成：
 
 1. 机器人信号接收器（Receiver），其WIFI为AP模式，作为主机。
-2. 手柄控制器（Hand Controller），通过WIFI连接至Receiver实现并网。
-3. 头部追踪器（Head Tracker），通过WIFI连接至Receiver实现并网。
+2. 姿态追踪器（Pose Tracker），作为从机，WIFI设置为STA模式，连接至Receiver实现并网，并发送udp数据包。
+3. 头部追踪器（Head Tracker），作为从机，WIFI设置为STA模式，连接至Receiver实现并网，并发送udp数据包。
 
-当手柄控制器/头部追踪器都没有连接至Receiver时，不向机器人发送控制指令。
+当`姿态追踪器`和`头部追踪器`都没有连接至`信号接收器`时，发送给机器人的控制信号的设备标识符设置为 `0xFF`。
 
 ## 参考成本
 

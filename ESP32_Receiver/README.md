@@ -1,17 +1,15 @@
-# 手机遥控器
+# 机器人接收器（Receiver）
 
+## 配置
 
-## 如何使用
+WIFI模式配置为AP模式
 
-1. 将 ESP32 连接到C板遥控器接口
-2. 连接到 ESP32 的热点：`Mobile_RC_AP`
-3. 打开浏览器，输入网址：`192.168.4.1/control`
-4. 点击按键即可控制啦
+- 名称：`RobotCmd_AP`
+- 密码：`12345678`
+- 监听端口：`3333`
 
-## 修改代码
-
+`pin 12` 和 `pin 13` 配置为串口引脚，用来发送SBUS控制指令。（也可拓展为传统UART通信）
 
 ## 备注
 
-- 关于报错 `fatal error: hwcrypto/sha.h: No such file or directory`
-  ESP32新版本中不使用`<hwcrypto/sha.h>`，改为使用`<sha/sha_parallel_engine.h>`
+- 在 `2025.12.3` 的测试时发现发送出去的SBUS信号会有较大概率出现乱码，最后排查出来是 FreeRTOS 的多任务工作造成的，预算非常草率的将所有工作集成到一个任务中进行（还好计算量不是很大）。有空的话可以看看具体原因。

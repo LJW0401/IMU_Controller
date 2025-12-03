@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="GFsbGo1Sr8Q9ktrQAT7I" name="第 1 页">
-        <mxGraphModel dx="317" dy="851" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+        <mxGraphModel dx="544" dy="851" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -18,7 +18,7 @@
                 <mxCell id="8" value="" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" source="3" target="7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="10" value="UART" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF9933;labelBackgroundColor=none;" parent="8" vertex="1" connectable="0">
+                <mxCell id="10" value="CAN" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF9933;labelBackgroundColor=none;" parent="8" vertex="1" connectable="0">
                     <mxGeometry x="-0.1542" y="1" relative="1" as="geometry">
                         <mxPoint y="-9" as="offset"/>
                     </mxGeometry>
@@ -43,7 +43,7 @@
                 <mxCell id="11" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=none;startFill=0;dashed=1;dashPattern=8 8;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" source="7" target="4" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="12" value="WIFI" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#B266FF;labelBackgroundColor=none;" parent="11" vertex="1" connectable="0">
+                <mxCell id="12" value="UDP" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#B266FF;labelBackgroundColor=none;" parent="11" vertex="1" connectable="0">
                     <mxGeometry x="-0.1208" y="-3" relative="1" as="geometry">
                         <mxPoint x="23" y="5" as="offset"/>
                     </mxGeometry>
@@ -54,7 +54,7 @@
                 <mxCell id="16" style="edgeStyle=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" source="15" target="4" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="17" value="WIFI" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#B266FF;labelBackgroundColor=none;" parent="16" vertex="1" connectable="0">
+                <mxCell id="17" value="UDP" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#B266FF;labelBackgroundColor=none;" parent="16" vertex="1" connectable="0">
                     <mxGeometry x="-0.24" y="-2" relative="1" as="geometry">
                         <mxPoint x="18" as="offset"/>
                     </mxGeometry>
@@ -65,7 +65,7 @@
                 <mxCell id="19" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" source="18" target="15" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="20" value="UART" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF9933;labelBackgroundColor=none;" parent="19" vertex="1" connectable="0">
+                <mxCell id="20" value="CAN" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF9933;labelBackgroundColor=none;" parent="19" vertex="1" connectable="0">
                     <mxGeometry x="0.1614" relative="1" as="geometry">
                         <mxPoint x="-6" y="-10" as="offset"/>
                     </mxGeometry>
@@ -96,15 +96,15 @@
                 <mxCell id="26" value="5V电源" style="whiteSpace=wrap;html=1;rounded=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="560" y="300" width="80" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="29" style="edgeStyle=orthogonalEdgeStyle;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#ffe6cc;strokeColor=#d79b00;" edge="1" parent="1" source="28" target="7">
+                <mxCell id="29" style="edgeStyle=orthogonalEdgeStyle;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" source="28" target="7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="30" value="GPIO" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF9933;labelBackgroundColor=none;" vertex="1" connectable="0" parent="29">
+                <mxCell id="30" value="GPIO" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#FF9933;labelBackgroundColor=none;" parent="29" vertex="1" connectable="0">
                     <mxGeometry x="-0.2182" y="2" relative="1" as="geometry">
                         <mxPoint x="18" y="7" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="28" value="手柄扳机" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                <mxCell id="28" value="手柄扳机" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="400" y="180" width="80" height="60" as="geometry"/>
                 </mxCell>
             </root>
