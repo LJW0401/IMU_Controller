@@ -8,7 +8,6 @@
 
 #define MAX_INTERVAL_CONNECTION 100  // ms
 
-
 namespace task_host
 {
 
@@ -72,36 +71,46 @@ bool ConnectionCheck()
     return head_tracker.connected || pose_tracker.connected;
 }
 
-void HostTask(void * pvParameters)
+static void Setup()
 {
-    // setup WiFi
     WiFi.softAP(ssid, password);
     Serial.printf("AP started, IP=%s\n", WiFi.softAPIP().toString().c_str());
 
     Udp.begin(listenPort);
     Serial.printf("UDP listening on port %u\n", listenPort);
+}
+
+static void Loop()
+{
+    int packetSize = Udp.parsePacket();
+    if (packetSize) {
+        IPAddress remoteIp = Udp.remoteIP();
+        uint16_t remotePort = Udp.remotePort();
+        char buf[512];
+        int len = Udp.read(buf, sizeof(buf) - 1);
+        if (len > 0) {
+            buf[len] = 0;
+            DecodeWifiData(buf, len);
+        }
+    }
+
+    bool last_connected = wifi_connected;
+    wifi_connected = ConnectionCheck();
+
+    if (wifi_connected != last_connected) {
+        Serial.printf(
+            "Connection status changed: %s\n", wifi_connected ? "Connected" : "Disconnected");
+    }
+}
+
+void HostTask(void * pvParameters)
+{
+    // setup WiFi
+    Setup();
 
     // task loop
     while (true) {
-        int packetSize = Udp.parsePacket();
-        if (packetSize) {
-            IPAddress remoteIp = Udp.remoteIP();
-            uint16_t remotePort = Udp.remotePort();
-            char buf[512];
-            int len = Udp.read(buf, sizeof(buf) - 1);
-            if (len > 0) {
-                buf[len] = 0;
-                DecodeWifiData(buf, len);
-            }
-        }
-        
-        bool last_connected = wifi_connected;
-        wifi_connected = ConnectionCheck();
-
-        if (wifi_connected != last_connected) {
-            Serial.printf("Connection status changed: %s\n", wifi_connected ? "Connected" : "Disconnected");
-        }
-        
+        Loop();
         // yield to other tasks
         vTaskDelay(pdMS_TO_TICKS(5));
     }
