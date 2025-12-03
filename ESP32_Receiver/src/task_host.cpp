@@ -24,6 +24,29 @@ bool wifi_connected = false;
 protocol_wifi::imu_u head_imu_data;
 protocol_wifi::imu_u pose_imu_data;
 
+//---------------------------------------------------------------------------
+// Setup
+//---------------------------------------------------------------------------
+
+static void WifiSetup()
+{
+    WiFi.softAP(ssid, password);
+    Serial.printf("AP started, IP=%s\n", WiFi.softAPIP().toString().c_str());
+
+    Udp.begin(listenPort);
+    Serial.printf("UDP listening on port %u\n", listenPort);
+}
+
+static void Setup()
+{
+    WifiSetup();
+    sbus::SetupSbus(12, 13);
+}
+
+//---------------------------------------------------------------------------
+// Loop
+//---------------------------------------------------------------------------
+
 static void DecodeWifiData(char * buf, int len)
 {
     switch (buf[0]) {
@@ -49,7 +72,7 @@ static void DecodeWifiData(char * buf, int len)
     }
 }
 
-bool ConnectionCheck()
+static bool ConnectionCheck()
 {
     ulong current_ms = millis();
 
@@ -71,29 +94,6 @@ bool ConnectionCheck()
 
     return head_tracker.connected || pose_tracker.connected;
 }
-
-//---------------------------------------------------------------------------
-// Setup
-//---------------------------------------------------------------------------
-
-static void WifiSetup()
-{
-    WiFi.softAP(ssid, password);
-    Serial.printf("AP started, IP=%s\n", WiFi.softAPIP().toString().c_str());
-
-    Udp.begin(listenPort);
-    Serial.printf("UDP listening on port %u\n", listenPort);
-}
-
-static void Setup()
-{
-    WifiSetup();
-    sbus::SetupSbus(12, 13);
-}
-
-//---------------------------------------------------------------------------
-// Loop
-//---------------------------------------------------------------------------
 
 static void Loop()
 {
