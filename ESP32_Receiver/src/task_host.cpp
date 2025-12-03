@@ -4,13 +4,10 @@
 #include <WiFiUdp.h>
 
 #include "protocol_wifi.hpp"
+#include "shared.hpp"
 
 #define MAX_INTERVAL_CONNECTION 100  // ms
 
-protocol_wifi::imu_u head_imu_data;
-protocol_wifi::imu_u pose_imu_data;
-
-bool wifi_connected = false;
 
 namespace task_host
 {
@@ -23,6 +20,7 @@ WiFiUDP Udp;
 
 connect_t head_tracker = {.connected = false, .last_update_ms = 0};
 connect_t pose_tracker = {.connected = false, .last_update_ms = 0};
+bool wifi_connected = false;
 
 static void DecodeWifiData(char * buf, int len)
 {
@@ -60,6 +58,7 @@ bool ConnectionCheck()
     } else {
         head_tracker.connected = false;
     }
+    head_tracker_connected = head_tracker.connected;
 
     // pose tracker
     if (current_ms - pose_tracker.last_update_ms < MAX_INTERVAL_CONNECTION &&
@@ -68,6 +67,7 @@ bool ConnectionCheck()
     } else {
         pose_tracker.connected = false;
     }
+    pose_tracker_connected = pose_tracker.connected;
 
     return head_tracker.connected || pose_tracker.connected;
 }
