@@ -24,6 +24,25 @@ bool wifi_connected = false;
 protocol_wifi::imu_u head_imu_data;
 protocol_wifi::imu_u pose_imu_data;
 
+/**
+************************************************************************
+* @brief:      	float_to_uint: 浮点数转换为无符号整数函数
+* @param[in]:   x_float:	待转换的浮点数
+* @param[in]:   x_min:		范围最小值
+* @param[in]:   x_max:		范围最大值
+* @param[in]:   bits: 		目标无符号整数的位数
+* @retval:     	无符号整数结果
+* @details:    	将给定的浮点数 x 在指定范围 [x_min, x_max] 内进行线性映射，映射结果为一个指定位数的无符号整数
+************************************************************************
+**/
+int float_to_uint(float x_float, float x_min, float x_max, int bits)
+{
+    /* Converts a float to an unsigned int, given range and number of bits */
+    float span = x_max - x_min;
+    float offset = x_min;
+    return (int)((x_float - offset) * ((float)((1 << bits) - 1)) / span);
+}
+
 //---------------------------------------------------------------------------
 // Setup
 //---------------------------------------------------------------------------
@@ -119,23 +138,12 @@ static void SolveWifiConnection()
 }
 
 static void SolveStateControl()
-{  // 测试数据
-    sbus::SBUS.unpack.ch0 = 0x00;
-    sbus::SBUS.unpack.ch1 = 0x01;
-    sbus::SBUS.unpack.ch2 = 0x02;
-    sbus::SBUS.unpack.ch3 = 0x03;
-    sbus::SBUS.unpack.ch4 = 0x04;
-    sbus::SBUS.unpack.ch5 = 0x05;
-    sbus::SBUS.unpack.ch6 = 0x06;
-    sbus::SBUS.unpack.ch7 = 0x07;
-    sbus::SBUS.unpack.ch8 = 0x08;
-    sbus::SBUS.unpack.ch9 = 0x09;
-    sbus::SBUS.unpack.ch10 = 0x0A;
-    sbus::SBUS.unpack.ch11 = 0x0B;
-    sbus::SBUS.unpack.ch12 = 0x0C;
-    sbus::SBUS.unpack.ch13 = 0x0D;
-    sbus::SBUS.unpack.ch14 = 0x0E;
-    sbus::SBUS.unpack.ch15 = 0x0F;
+{
+    sbus::SBUS.unpack.ch15 = 0x01;  // 标识该控制器为自定义头追控制器
+    // 头追IMU数据
+    sbus::SBUS.unpack.ch0 = float_to_uint(head_imu_data.decoded.r, -180.0f, 180.0f, 11);
+    sbus::SBUS.unpack.ch1 = float_to_uint(head_imu_data.decoded.p, -90.0f, 90.0f, 11);
+    sbus::SBUS.unpack.ch2 = float_to_uint(head_imu_data.decoded.y, -180.0f, 180.0f, 11);
 }
 
 static void Loop()
