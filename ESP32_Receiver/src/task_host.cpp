@@ -9,6 +9,7 @@
 #define MAX_INTERVAL_CONNECTION 100  // ms
 
 #define DEBUG_MODE 1
+#define DEBUG_SHOW_TMP 1
 
 namespace task_host
 {
@@ -26,6 +27,8 @@ bool wifi_connected = false;
 protocol_wifi::imu_u head_imu_data;
 protocol_wifi::imu_u pose_imu_data;
 protocol_wifi::trigger_u trigger_data;
+
+uint32_t task_loop_count = 0;
 
 /**
 ************************************************************************
@@ -79,7 +82,7 @@ static void DecodeWifiData(char * buf, int len)
             }
             memcpy(&imu_tmp.raw.data[0], buf, len);
 
-#if DEBUG_MODE
+#if DEBUG_MODE && DEBUG_SHOW_TMP
             // 打印接收到的imu r p y 数据
             Serial.printf(
                 "IMU Data: can_id=%u, r=%.2f, p=%.2f, y=%.2f\n", imu_tmp.decoded.can_id,
@@ -102,13 +105,6 @@ static void DecodeWifiData(char * buf, int len)
                 len = sizeof(trigger_tmp.raw.data);
             }
             memcpy(&trigger_tmp.raw.data[0], buf, len);
-
-#if DEBUG_MODE
-            // 打印接收到的trigger数据
-            Serial.printf(
-                "Trigger Data: kp_vx=%.2f, kp_vy=%.2f, kp_wz=%.2f\n", trigger_tmp.decoded.kp_vx,
-                trigger_tmp.decoded.kp_vy, trigger_tmp.decoded.kp_wz);
-#endif
 
             trigger_data = trigger_tmp;
         } break;
@@ -182,17 +178,17 @@ static void SolveStateControl()
     sbus::SBUS.unpack.ch0 = float_to_uint(head_imu_data.decoded.r, -180.0f, 180.0f, 11);
     sbus::SBUS.unpack.ch1 = float_to_uint(head_imu_data.decoded.p, -90.0f, 90.0f, 11);
     sbus::SBUS.unpack.ch2 = float_to_uint(head_imu_data.decoded.y, -180.0f, 180.0f, 11);
-    
+
     // 姿态IMU数据
     sbus::SBUS.unpack.ch3 = float_to_uint(pose_imu_data.decoded.r, -180.0f, 180.0f, 11);
     sbus::SBUS.unpack.ch4 = float_to_uint(pose_imu_data.decoded.p, -90.0f, 90.0f, 11);
     sbus::SBUS.unpack.ch5 = float_to_uint(pose_imu_data.decoded.y, -180.0f, 180.0f, 11);
-    
+
     // 扳机数据
     sbus::SBUS.unpack.ch6 = float_to_uint(trigger_data.decoded.kp_vx, -1.0f, 1.0f, 11);
     sbus::SBUS.unpack.ch7 = float_to_uint(trigger_data.decoded.kp_vy, -1.0f, 1.0f, 11);
     sbus::SBUS.unpack.ch8 = float_to_uint(trigger_data.decoded.kp_wz, -1.0f, 1.0f, 11);
-    
+
     // 指向偏差角度
     float yaw_error = head_imu_data.decoded.y - pose_imu_data.decoded.y;
     // 归一化到 [-180, 180]
@@ -209,6 +205,25 @@ static void Loop()
     SolveWifiConnection();
     SolveStateControl();
     sbus::SbusSendData();
+
+#if DEBUG_MODE
+    if (task_loop_count % 500 == 0) {
+        Serial.printf(
+            "Head IMU Data: r=%.2f, p=%.2f, y=%.2f\n", head_imu_data.decoded.r,
+            head_imu_data.decoded.p, head_imu_data.decoded.y);
+        Serial.printf(
+            "Pose IMU Data: r=%.2f, p=%.2f, y=%.2f\n", pose_imu_data.decoded.r,
+            pose_imu_data.decoded.p, pose_imu_data.decoded.y);
+        Serial.printf(
+            "Trigger Data: kp_vx=%.2f, kp_vy=%.2f, kp_wz=%.2f\n", trigger_data.decoded.kp_vx,
+            trigger_data.decoded.kp_vy, trigger_data.decoded.kp_wz);
+    }
+
+    // 打印连接到wifi的从机数量
+    if (task_loop_count % 100 == 0) {
+        Serial.printf("Connected devices: %u\n", WiFi.softAPgetStationNum());
+    }
+#endif
 }
 
 void HostTask(void * pvParameters)
@@ -219,6 +234,8 @@ void HostTask(void * pvParameters)
     // task loop
     while (true) {
         Loop();
+
+        task_loop_count++;
         // yield to other tasks
         vTaskDelay(pdMS_TO_TICKS(5));
     }
