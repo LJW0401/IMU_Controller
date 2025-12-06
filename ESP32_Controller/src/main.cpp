@@ -7,9 +7,6 @@
 #define MODE_HEAD_TRACKER 1
 #define MODE_POSE_TRACKER 2
 
-using namespace task_imu;
-using namespace task_upload;
-
 // 定义任务句柄
 TaskHandle_t ImuTaskHandle = NULL;
 TaskHandle_t UploadTaskHandle = NULL;
@@ -41,12 +38,12 @@ void setup()
 
     auto * imuParams = new task_imu::ImuParams{can_id, mst_id};
     xTaskCreate(
-        ImuTask,        // 任务函数
-        "ImuTask",      // 任务名称
-        4096,           // 任务栈大小（字节）
-        imuParams,      // 任务参数
-        1,              // 任务优先级
-        &ImuTaskHandle  // 任务句柄
+        task_imu::ImuTask,  // 任务函数
+        "ImuTask",          // 任务名称
+        4096,               // 任务栈大小（字节）
+        imuParams,          // 任务参数
+        1,                  // 任务优先级
+        &ImuTaskHandle      // 任务句柄
     );
 
     if (tracker_mode == MODE_POSE_TRACKER) {
@@ -61,12 +58,12 @@ void setup()
     }
 
     xTaskCreate(
-        UploadTask,        // 任务函数
-        "UploadTask",      // 任务名称
-        4096,              // 任务栈大小（字节）
-        NULL,              // 任务参数
-        1,                 // 任务优先级
-        &UploadTaskHandle  // 任务句柄
+        task_upload::UploadTask,  // 任务函数
+        "UploadTask",             // 任务名称
+        4096,                     // 任务栈大小（字节）
+        NULL,                     // 任务参数
+        1,                        // 任务优先级
+        &UploadTaskHandle         // 任务句柄
     );
 
     Serial.println("初始化完成");
