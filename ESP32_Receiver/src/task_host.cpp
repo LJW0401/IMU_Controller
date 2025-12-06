@@ -166,6 +166,12 @@ static void SolveWifiConnection()
 
 static void SolveStateControl()
 {
+    // SBUS通道设置如下
+    // ch0,ch1,ch2 传输头追IMU的rpy数据，给云台进行跟踪。
+    // ch3,ch4,ch5 传输姿态IMU的rpy数据，给底盘进行姿态控制【底盘姿态控制选项1】。
+    // ch6,ch7,ch8 传输扳机数据，给底盘进行速度控制。
+    // ch9         传输底盘和云台的指向偏差角度【底盘姿态控制选项2】。
+
     if (head_tracker.connected || pose_tracker.connected) {
         sbus::SBUS.unpack.connect_flag = 0x01;  // 标识该控制器为自定义头追控制器
     } else {
@@ -176,6 +182,26 @@ static void SolveStateControl()
     sbus::SBUS.unpack.ch0 = float_to_uint(head_imu_data.decoded.r, -180.0f, 180.0f, 11);
     sbus::SBUS.unpack.ch1 = float_to_uint(head_imu_data.decoded.p, -90.0f, 90.0f, 11);
     sbus::SBUS.unpack.ch2 = float_to_uint(head_imu_data.decoded.y, -180.0f, 180.0f, 11);
+    
+    // 姿态IMU数据
+    sbus::SBUS.unpack.ch3 = float_to_uint(pose_imu_data.decoded.r, -180.0f, 180.0f, 11);
+    sbus::SBUS.unpack.ch4 = float_to_uint(pose_imu_data.decoded.p, -90.0f, 90.0f, 11);
+    sbus::SBUS.unpack.ch5 = float_to_uint(pose_imu_data.decoded.y, -180.0f, 180.0f, 11);
+    
+    // 扳机数据
+    sbus::SBUS.unpack.ch6 = float_to_uint(trigger_data.decoded.kp_vx, -1.0f, 1.0f, 11);
+    sbus::SBUS.unpack.ch7 = float_to_uint(trigger_data.decoded.kp_vy, -1.0f, 1.0f, 11);
+    sbus::SBUS.unpack.ch8 = float_to_uint(trigger_data.decoded.kp_wz, -1.0f, 1.0f, 11);
+    
+    // 指向偏差角度
+    float yaw_error = head_imu_data.decoded.y - pose_imu_data.decoded.y;
+    // 归一化到 [-180, 180]
+    if (yaw_error > 180.0f) {
+        yaw_error -= 360.0f;
+    } else if (yaw_error < -180.0f) {
+        yaw_error += 360.0f;
+    }
+    sbus::SBUS.unpack.ch9 = float_to_uint(yaw_error, -180.0f, 180.0f, 11);
 }
 
 static void Loop()
