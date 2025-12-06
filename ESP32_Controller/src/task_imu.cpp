@@ -11,13 +11,15 @@
 #define CAN_TX_PIN GPIO_NUM_5
 #define CAN_RX_PIN GPIO_NUM_4
 
+#define DEBUG_MODE 0
+
 namespace task_imu
 {
 
 dm_imu::imu_t imu;
 protocol_wifi::imu_u imu_trans_data;
 
-static void Setup()
+static void Setup(uint8_t imu_can_id, uint8_t imu_mst_id)
 {
     Serial.println("");
     Serial.println("ImuTask: starting TWAI init...");
@@ -39,7 +41,8 @@ static void Setup()
     }
     Serial.println("TWAI init OK");
 
-    imu_init(imu, 0x01, 0x51);
+    Serial.printf("Initializing IMU with CAN ID: 0x%02X, MST ID: 0x%02X\n", imu_can_id, imu_mst_id);
+    imu_init(imu, imu_can_id, imu_mst_id);
     Serial.println("IMU init OK");
 }
 
@@ -50,6 +53,11 @@ static void Receive()
     if (twai_receive(&rx_msg, pdMS_TO_TICKS(10)) == ESP_OK) {
         // 根据 ID 解析数据
         IMU_UpdateData(imu, rx_msg.data);
+#if DEBUG_MODE
+        Serial.printf(
+            "IMU ID=0x%03X R=%.2f P=%.2f Y=%.2f\n", rx_msg.identifier, imu.roll, imu.pitch,
+            imu.yaw);
+#endif
     }
 }
 
@@ -88,10 +96,20 @@ static void Loop()
 
 void ImuTask(void * pvParameters)
 {
-    Setup();
+    ImuParams * params = static_cast<ImuParams *>(pvParameters);
+    uint8_t imu_can_id = 0x01;
+    uint8_t imu_mst_id = 0x51;
+    if (params) {
+        imu_can_id = params->can_id;
+        imu_mst_id = params->mst_id;
+        delete params;  // 释放堆内存
+    }
+
+    Setup(imu_can_id, imu_mst_id);
     while (true) {
         Loop();
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
+#undef DEBUG_MODE
 }  // namespace task_imu
