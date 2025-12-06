@@ -89,7 +89,7 @@ static void DecodeWifiData(char * buf, int len)
                 imu_tmp.decoded.r, imu_tmp.decoded.p, imu_tmp.decoded.y);
 #endif
 
-            if (imu_tmp.decoded.can_id = 0x01) {
+            if (imu_tmp.decoded.can_id == 0x01) {
                 head_imu_data = imu_tmp;
                 head_tracker.last_update_ms = millis();
             } else if (imu_tmp.decoded.can_id == 0x02) {
