@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "task_imu.hpp"
+#include "task_trigger.hpp"
 #include "task_upload.hpp"
 
 #define MODE_HEAD_TRACKER 1
@@ -12,6 +13,7 @@ using namespace task_upload;
 // 定义任务句柄
 TaskHandle_t ImuTaskHandle = NULL;
 TaskHandle_t UploadTaskHandle = NULL;
+TaskHandle_t TriggerTaskHandle = NULL;
 
 uint32_t count = 0;
 
@@ -46,6 +48,17 @@ void setup()
         1,              // 任务优先级
         &ImuTaskHandle  // 任务句柄
     );
+
+    if (tracker_mode == MODE_POSE_TRACKER) {
+        xTaskCreate(
+            task_trigger::TriggerTask,  // 任务函数
+            "TriggerTask",              // 任务名称
+            4096,                       // 任务栈大小（字节）
+            NULL,                       // 任务参数
+            1,                          // 任务优先级
+            &TriggerTaskHandle          // 任务句柄
+        );
+    }
 
     xTaskCreate(
         UploadTask,        // 任务函数
