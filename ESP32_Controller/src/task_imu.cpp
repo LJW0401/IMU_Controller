@@ -108,7 +108,7 @@ void ImuTask(void * pvParameters)
     Setup(imu_can_id, imu_mst_id);
     while (true) {
         Loop();
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(15));
     }
 }
 #undef DEBUG_MODE
