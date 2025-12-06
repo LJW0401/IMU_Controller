@@ -9,7 +9,7 @@
 #define MAX_INTERVAL_CONNECTION 100  // ms
 
 #define DEBUG_MODE 1
-#define DEBUG_SHOW_TMP 1
+#define DEBUG_SHOW_TMP 0
 
 namespace task_host
 {
@@ -107,6 +107,7 @@ static void DecodeWifiData(char * buf, int len)
             memcpy(&trigger_tmp.raw.data[0], buf, len);
 
             trigger_data = trigger_tmp;
+            pose_tracker.last_update_ms = millis();
         } break;
 
         default:
@@ -207,7 +208,7 @@ static void Loop()
     sbus::SbusSendData();
 
 #if DEBUG_MODE
-    if (task_loop_count % 500 == 0) {
+    if (task_loop_count % 800 == 0) {
         Serial.printf(
             "Head IMU Data: r=%.2f, p=%.2f, y=%.2f\n", head_imu_data.decoded.r,
             head_imu_data.decoded.p, head_imu_data.decoded.y);
@@ -219,9 +220,11 @@ static void Loop()
             trigger_data.decoded.kp_vy, trigger_data.decoded.kp_wz);
     }
 
-    // 打印连接到wifi的从机数量
-    if (task_loop_count % 100 == 0) {
-        Serial.printf("Connected devices: %u\n", WiFi.softAPgetStationNum());
+    if (task_loop_count % 300 == 0) {
+        Serial.printf(
+            "Connection Status: Head Tracker: %s, Pose Tracker: %s\n",
+            head_tracker.connected ? "ON line" : "OFF line",
+            pose_tracker.connected ? "ON line" : "OFF line");
     }
 #endif
 }
