@@ -6,6 +6,7 @@
 typedef enum {
     PROTOCOL_WIFI_TYPE_TEST = 0,
     PROTOCOL_WIFI_TYPE_IMU,
+    PROTOCOL_WIFI_TYPE_TRIGGER,
     PROTOCOL_WIFI_TYPE_NONE
 } protocol_wifi_type_e;
 
@@ -14,7 +15,7 @@ namespace protocol_wifi
 union imu_u {
     struct
     {
-        uint8_t data[128];
+        uint8_t data[64];
     } raw;
 
     struct
@@ -37,5 +38,22 @@ union imu_u {
         float y;
     } decoded;
 };
+
+union trigger_u {
+    struct
+    {
+        uint8_t data[16];
+    } raw;
+
+    struct
+    {
+        uint8_t type;
+
+        float kp_vx;  // [-1.0, 1.0]
+        float kp_vy;  // [-1.0, 1.0]
+        float kp_wz;  // [-1.0, 1.0]
+    } decoded;
+};
+
 }  // namespace protocol_wifi
 #endif  // PROTOCOL_WIFI_HPP
