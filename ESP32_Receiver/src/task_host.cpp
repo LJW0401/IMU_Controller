@@ -8,6 +8,8 @@
 
 #define MAX_INTERVAL_CONNECTION 100  // ms
 
+#define DEBUG_MODE 1
+
 namespace task_host
 {
 
@@ -23,6 +25,7 @@ bool wifi_connected = false;
 
 protocol_wifi::imu_u head_imu_data;
 protocol_wifi::imu_u pose_imu_data;
+protocol_wifi::trigger_u trigger_data;
 
 /**
 ************************************************************************
@@ -76,6 +79,13 @@ static void DecodeWifiData(char * buf, int len)
             }
             memcpy(&imu_tmp.raw.data[0], buf, len);
 
+#if DEBUG_MODE
+            // 打印接收到的imu r p y 数据
+            Serial.printf(
+                "IMU Data: can_id=%u, r=%.2f, p=%.2f, y=%.2f\n", imu_tmp.decoded.can_id,
+                imu_tmp.decoded.r, imu_tmp.decoded.p, imu_tmp.decoded.y);
+#endif
+
             if (imu_tmp.decoded.can_id = 0x01) {
                 head_imu_data = imu_tmp;
                 head_tracker.last_update_ms = millis();
@@ -84,6 +94,23 @@ static void DecodeWifiData(char * buf, int len)
                 pose_tracker.last_update_ms = millis();
             }
 
+        } break;
+
+        case PROTOCOL_WIFI_TYPE_TRIGGER: {
+            protocol_wifi::trigger_u trigger_tmp;
+            if (len > sizeof(trigger_tmp.raw.data)) {
+                len = sizeof(trigger_tmp.raw.data);
+            }
+            memcpy(&trigger_tmp.raw.data[0], buf, len);
+
+#if DEBUG_MODE
+            // 打印接收到的trigger数据
+            Serial.printf(
+                "Trigger Data: kp_vx=%.2f, kp_vy=%.2f, kp_wz=%.2f\n", trigger_tmp.decoded.kp_vx,
+                trigger_tmp.decoded.kp_vy, trigger_tmp.decoded.kp_wz);
+#endif
+
+            trigger_data = trigger_tmp;
         } break;
 
         default:
@@ -144,7 +171,7 @@ static void SolveStateControl()
     } else {
         sbus::SBUS.unpack.connect_flag = 0xFF;
     }
-    
+
     // 头追IMU数据
     sbus::SBUS.unpack.ch0 = float_to_uint(head_imu_data.decoded.r, -180.0f, 180.0f, 11);
     sbus::SBUS.unpack.ch1 = float_to_uint(head_imu_data.decoded.p, -90.0f, 90.0f, 11);
